@@ -30,7 +30,7 @@
       font-weight: bold;
     }
     #history {
-      margin-top: 2rem;
+      display: none;
     }
     #history ul {
       list-style-type: none;
@@ -49,11 +49,11 @@
       帳號：
       <input type="text" id="username" />
     </label>
-    <button onclick="login()">登入</button>
+    <button onclick="handleLogin()">登入</button>
   </div>
 
   <div id="app">
-    <h2>Nomad限量商品兌換</h2>
+    <h2>Nomad限量獎品兌換</h2>
     <p>目前時間：<span id="now"></span></p>
     <label>
       請輸入兌換人姓名：
@@ -77,13 +77,18 @@
       }
     });
 
-    function login() {
+    function handleLogin() {
       const username = document.getElementById("username").value.trim();
-      if (username === "drinks") {
+      const userAgent = navigator.userAgent || "";
+      const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
+
+      if (username === "drinks" && !isMobile) {
         localStorage.setItem("loggedInUser", username);
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
         updateHistory();
+      } else if (isMobile) {
+        alert("請使用電腦登入");
       } else {
         alert("帳號錯誤");
       }
@@ -134,8 +139,8 @@
       const record = {
         name,
         date: todayKey,
-        time: now.toLocaleString()
-        userAgent: navigator.userAgent()
+        time: now.toLocaleString(),
+        userAgent: navigator.userAgent || "",
       };
 
       localData.push(record);
