@@ -10,35 +10,76 @@
       padding: 2rem;
       max-width: 500px;
       margin: auto;
+      background: url('https://ssl.gstatic.com/docs/spreadsheets/forms/favicon_qp2.png');
+      background-size: cover;
     }
+
     #login {
       display: block;
     }
+
     #app {
       display: none;
+      background-color: rgba(255, 255, 255, 0.7);
+      border-radius: 10px;
+      padding: 20px;
     }
+
     label {
       display: block;
       margin-top: 1rem;
     }
+
     button {
       margin-top: 1rem;
       padding: 0.5rem 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
     }
+
     #status {
       margin-top: 1rem;
       font-weight: bold;
+      color: green;
     }
+
     #history {
-      display: none; /* 隱藏今日兌換紀錄 */
+      display: none;
+      margin-top: 1rem;
     }
+
     #history ul {
       list-style-type: none;
       padding: 0;
     }
+
     #history li {
       padding: 0.25rem 0;
       border-bottom: 1px solid #ccc;
+    }
+
+    #toggleHistory {
+      background-color: #f2b400;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      margin-top: 1rem;
+    }
+
+    .container {
+      background: rgba(255, 223, 186, 0.8); /* Orange oak color with transparency */
+      padding: 1rem;
+      border-radius: 5px;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
     }
   </style>
 </head>
@@ -61,6 +102,9 @@
     </label>
     <button onclick="redeem()">兌換</button>
     <div id="status"></div>
+
+    <button id="toggleHistory" onclick="toggleHistory()">查看/隱藏 兌換紀錄</button>
+
     <div id="history">
       <h3>今日兌換紀錄</h3>
       <ul id="historyList"></ul>
@@ -101,6 +145,7 @@
       const now = new Date();
       document.getElementById("now").textContent = now.toLocaleString();
     }
+
     setInterval(updateTime, 1000);
     updateTime();
 
@@ -141,15 +186,16 @@
         time: now.toLocaleString(),
         userAgent: navigator.userAgent || "",
         device: detectDeviceType(),
+        latitude: "",
+        longitude: "",
       };
 
       localData.push(record);
       localStorage.setItem("voucherData", JSON.stringify(localData));
 
-      console.log("Sending record to sheet:", record);
-
       fetch(SHEET_WEB_APP_URL, {
         method: "POST",
+        mode: "no-cors",
         headers: {
           "Content-Type": "application/json",
         },
@@ -174,9 +220,14 @@
       historyList.innerHTML = "";
       todayRecords.forEach(record => {
         const li = document.createElement("li");
-        li.textContent = `${record.time} - ${record.name} (${record.device})`;
+        li.textContent = `${record.time} - ${record.name}`;
         historyList.appendChild(li);
       });
+    }
+
+    function toggleHistory() {
+      const historyDiv = document.getElementById("history");
+      historyDiv.style.display = historyDiv.style.display === "none" ? "block" : "none";
     }
   </script>
 </body>
