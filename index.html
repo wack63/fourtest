@@ -53,7 +53,7 @@
   </div>
 
   <div id="app">
-    <h2>Nomad限量獎品兌換</h2>
+    <h2>test</h2>
     <p>目前時間：<span id="now"></span></p>
     <label>
       請輸入兌換人姓名：
@@ -70,7 +70,7 @@
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       const savedUser = localStorage.getItem("loggedInUser");
-      if (savedUser === "drinks") {
+      if (savedUser === "9999") {
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
         updateHistory();
@@ -82,7 +82,7 @@
       const userAgent = navigator.userAgent || "";
       const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
 
-      if (username === "drinks" && !isMobile) {
+      if (username === "9999" && !isMobile) {
         localStorage.setItem("loggedInUser", username);
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
@@ -95,10 +95,7 @@
     }
 
     const dailyLimits = {
-      "04-14": 25,
-      "04-15": 25,
-      "04-16": 20,
-      "04-17": 10,
+      "04-14": 20,
       "04-18": 25,
       "04-19": 25,
       "04-20": 20,
@@ -136,28 +133,35 @@
         return;
       }
 
-      const record = {
-        name,
-        date: todayKey,
-        time: now.toLocaleString(),
-        userAgent: navigator.userAgent || "",
-      };
+      // Get device location
+      navigator.geolocation.getCurrentPosition(position => {
+        const record = {
+          name,
+          date: todayKey,
+          time: now.toLocaleString(),
+          userAgent: navigator.userAgent || "",
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
 
-      localData.push(record);
-      localStorage.setItem("voucherData", JSON.stringify(localData));
+        localData.push(record);
+        localStorage.setItem("voucherData", JSON.stringify(localData));
 
-      fetch(SHEET_WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(record),
+        fetch(SHEET_WEB_APP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(record),
+        });
+
+        document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
+        document.getElementById("name").value = "";
+        updateHistory();
+      }, error => {
+        document.getElementById("status").textContent = "無法取得定位資訊，請允許位置權限。";
       });
-
-      document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
-      document.getElementById("name").value = "";
-      updateHistory();
     }
 
     function updateHistory() {
