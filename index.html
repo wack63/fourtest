@@ -42,7 +42,7 @@
   </div>
 
   <div id="app">
-    <h2>Nomad限量酒杯兌換</h2>
+    <h2>Nomad限量商品兌換</h2>
     <p>目前時間：<span id="now"></span></p>
     <label>
       請輸入兌換人姓名：
@@ -53,10 +53,20 @@
   </div>
 
   <script>
+    // 自動登入機制
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedUser = localStorage.getItem("loggedInUser");
+      if (savedUser === "drinks") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      }
+    });
+
     // 使用者登入檢查
     function login() {
       const username = document.getElementById("username").value.trim();
       if (username === "drinks") {
+        localStorage.setItem("loggedInUser", username);
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
       } else {
