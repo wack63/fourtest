@@ -53,7 +53,7 @@
   </div>
 
   <div id="app">
-    <h2>Nomad限量酒杯兌換</h2>
+    <h2>Nomad限量獎品兌換</h2>
     <p>目前時間：<span id="now"></span></p>
     <label>
       請輸入兌換人姓名：
@@ -70,7 +70,7 @@
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       const savedUser = localStorage.getItem("loggedInUser");
-      if (savedUser === "drinks") {
+      if (savedUser === "9999") {
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
         updateHistory();
@@ -79,7 +79,7 @@
 
     function handleLogin() {
       const username = document.getElementById("username").value.trim();
-      if (username === "drinks") {
+      if (username === "9999") {
         localStorage.setItem("loggedInUser", username);
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
@@ -148,6 +148,8 @@
       localData.push(record);
       localStorage.setItem("voucherData", JSON.stringify(localData));
 
+      console.log("Sending record to sheet:", record);
+
       fetch(SHEET_WEB_APP_URL, {
         method: "POST",
         mode: "cors",
@@ -155,10 +157,11 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify(record),
-      });
-        .then((res) => res.json())
-        .then((data) => console.log("Server response:", data))
-        .catch((err) => console.error("Fetch error:", err));
+      })
+        .then(res => res.text())
+        .then(text => console.log("Sheet response:", text))
+        .catch(err => console.error("Fetch error:", err));
+
       document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
       document.getElementById("name").value = "";
       updateHistory();
