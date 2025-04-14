@@ -30,7 +30,7 @@
       font-weight: bold;
     }
     #history {
-      display: block;
+      display: none; /* 隱藏今日兌換紀錄 */
     }
     #history ul {
       list-style-type: none;
@@ -70,7 +70,7 @@
   <script>
     window.addEventListener("DOMContentLoaded", () => {
       const savedUser = localStorage.getItem("loggedInUser");
-      if (savedUser === "9999") {
+      if (savedUser === "drinks") {
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
         updateHistory();
@@ -135,35 +135,31 @@
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(position => {
-        const record = {
-          name,
-          date: todayKey,
-          time: now.toLocaleString(),
-          userAgent: navigator.userAgent || "",
-          device: detectDeviceType(),
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
+      const record = {
+        name,
+        date: todayKey,
+        time: now.toLocaleString(),
+        userAgent: navigator.userAgent || "",
+        device: detectDeviceType(),
+        latitude: "",
+        longitude: "",
+      };
 
-        localData.push(record);
-        localStorage.setItem("voucherData", JSON.stringify(localData));
+      localData.push(record);
+      localStorage.setItem("voucherData", JSON.stringify(localData));
 
-        fetch(SHEET_WEB_APP_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(record),
-        });
-
-        document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
-        document.getElementById("name").value = "";
-        updateHistory();
-      }, error => {
-        document.getElementById("status").textContent = "無法取得定位資訊，請允許位置權限。";
+      fetch(SHEET_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(record),
       });
+
+      document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
+      document.getElementById("name").value = "";
+      updateHistory();
     }
 
     function updateHistory() {
