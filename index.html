@@ -150,13 +150,15 @@
 
       fetch(SHEET_WEB_APP_URL, {
         method: "POST",
-        mode: "no-cors",
+        mode: "cors",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(record),
       });
-
+        .then((res) => res.json())
+        .then((data) => console.log("Server response:", data))
+        .catch((err) => console.error("Fetch error:", err));
       document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
       document.getElementById("name").value = "";
       updateHistory();
