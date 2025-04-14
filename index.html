@@ -82,13 +82,11 @@
       const userAgent = navigator.userAgent || "";
       const isMobile = /Mobile|Android|iPhone|iPad/i.test(userAgent);
 
-      if (username === "9999" && !isMobile) {
+      if (username === "9999" && ) {
         localStorage.setItem("loggedInUser", username);
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
         updateHistory();
-      } else if (isMobile) {
-        alert("請使用電腦登入");
       } else {
         alert("帳號錯誤");
       }
