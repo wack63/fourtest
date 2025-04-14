@@ -29,6 +29,17 @@
       margin-top: 1rem;
       font-weight: bold;
     }
+    #history {
+      margin-top: 2rem;
+    }
+    #history ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    #history li {
+      padding: 0.25rem 0;
+      border-bottom: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -50,31 +61,34 @@
     </label>
     <button onclick="redeem()">兌換</button>
     <div id="status"></div>
+    <div id="history">
+      <h3>今日兌換紀錄</h3>
+      <ul id="historyList"></ul>
+    </div>
   </div>
 
   <script>
-    // 自動登入機制
     window.addEventListener("DOMContentLoaded", () => {
       const savedUser = localStorage.getItem("loggedInUser");
       if (savedUser === "drinks") {
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
+        updateHistory();
       }
     });
 
-    // 使用者登入檢查
     function login() {
       const username = document.getElementById("username").value.trim();
       if (username === "drinks") {
         localStorage.setItem("loggedInUser", username);
         document.getElementById("login").style.display = "none";
         document.getElementById("app").style.display = "block";
+        updateHistory();
       } else {
         alert("帳號錯誤");
       }
     }
 
-    // 記錄每日限額
     const dailyLimits = {
       "04-14": 25,
       "04-15": 25,
@@ -86,7 +100,6 @@
       "04-21": 10,
     };
 
-    // 顯示時間
     function updateTime() {
       const now = new Date();
       document.getElementById("now").textContent = now.toLocaleString();
@@ -94,10 +107,8 @@
     setInterval(updateTime, 1000);
     updateTime();
 
-    // Google Sheets 設定（請替換為你的 Apps Script Web App URL）
     const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyAjl1yLNeCbH0qdtFQONSo3TMilnUzBWPIZ-CU1S-7nTVR3oJ8saGbg-DKgy-zIqoL/exec";
 
-    // 執行兌換
     function redeem() {
       const name = document.getElementById("name").value.trim();
       if (!name) {
@@ -108,7 +119,6 @@
       const now = new Date();
       const todayKey = now.toISOString().slice(5, 10);
 
-      // 從 localStorage 檢查當日紀錄
       const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
       const todayRecords = localData.filter(r => r.date === todayKey);
 
@@ -125,14 +135,11 @@
         name,
         date: todayKey,
         time: now.toLocaleString()
-        userAgent: navigator.userAgent
       };
 
-      // 儲存到 localStorage
       localData.push(record);
       localStorage.setItem("voucherData", JSON.stringify(localData));
 
-      // 傳送到 Google Sheets
       fetch(SHEET_WEB_APP_URL, {
         method: "POST",
         mode: "no-cors",
@@ -144,6 +151,22 @@
 
       document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
       document.getElementById("name").value = "";
+      updateHistory();
+    }
+
+    function updateHistory() {
+      const now = new Date();
+      const todayKey = now.toISOString().slice(5, 10);
+      const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
+      const todayRecords = localData.filter(r => r.date === todayKey);
+
+      const historyList = document.getElementById("historyList");
+      historyList.innerHTML = "";
+      todayRecords.forEach(record => {
+        const li = document.createElement("li");
+        li.textContent = `${record.time} - ${record.name}`;
+        historyList.appendChild(li);
+      });
     }
   </script>
 </body>
