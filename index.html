@@ -141,8 +141,6 @@
         time: now.toLocaleString(),
         userAgent: navigator.userAgent || "",
         device: detectDeviceType(),
-        latitude: "",
-        longitude: "",
       };
 
       localData.push(record);
@@ -177,7 +175,7 @@
       historyList.innerHTML = "";
       todayRecords.forEach(record => {
         const li = document.createElement("li");
-        li.textContent = `${record.time} - ${record.name}`;
+        li.textContent = `${record.time} - ${record.name} (${record.device})`;
         historyList.appendChild(li);
       });
     }
