@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Voucher Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      max-width: 500px;
+      margin: auto;
+    }
+    #login {
+      display: block;
+    }
+    #app {
+      display: none;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+    }
+    #status {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="login">
+    <h2>登入</h2>
+    <label>
+      帳號：
+      <input type="text" id="username" />
+    </label>
+    <button onclick="login()">登入</button>
+  </div>
+
+  <div id="app">
+    <h2>Voucher Tracker</h2>
+    <p>目前時間：<span id="now"></span></p>
+    <label>
+      請輸入兌換人姓名：
+      <input type="text" id="name" />
+    </label>
+    <button onclick="redeem()">兌換</button>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    // 使用者登入檢查
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      if (username === "drinks") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("app").style.display = "block";
+      } else {
+        alert("帳號錯誤");
+      }
+    }
+
+    // 記錄每日限額
+    const dailyLimits = {
+      "04-18": 25,
+      "04-19": 25,
+      "04-20": 20,
+      "04-21": 10,
+    };
+
+    // 顯示時間
+    function updateTime() {
+      const now = new Date();
+      document.getElementById("now").textContent = now.toLocaleString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Google Sheets 設定（請替換為你的 Apps Script Web App URL）
+    const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyAjl1yLNeCbH0qdtFQONSo3TMilnUzBWPIZ-CU1S-7nTVR3oJ8saGbg-DKgy-zIqoL/exec";
+
+    // 執行兌換
+    function redeem() {
+      const name = document.getElementById("name").value.trim();
+      if (!name) {
+        document.getElementById("status").textContent = "請輸入姓名";
+        return;
+      }
+
+      const now = new Date();
+      const todayKey = now.toISOString().slice(5, 10);
+
+      // 從 localStorage 檢查當日紀錄
+      const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
+      const todayRecords = localData.filter(r => r.date === todayKey);
+
+      if (!dailyLimits[todayKey]) {
+        document.getElementById("status").textContent = `今天(${todayKey})無兌換活動`;
+        return;
+      }
+      if (todayRecords.length >= dailyLimits[todayKey]) {
+        document.getElementById("status").textContent = `今天(${todayKey})名額已滿`;
+        return;
+      }
+
+      const record = {
+        name,
+        date: todayKey,
+        time: now.toLocaleString()
+      };
+
+      // 儲存到 localStorage
+      localData.push(record);
+      localStorage.setItem("voucherData", JSON.stringify(localData));
+
+      // 傳送到 Google Sheets
+      fetch(SHEET_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(record),
+      });
+
+      document.getElementById("status").textContent = `兌換成功！目前人數：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
+      document.getElementById("name").value = "";
+    }
+  </script>
+</body>
+</html>
