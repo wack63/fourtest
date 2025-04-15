@@ -20,7 +20,7 @@
     <p id="userInfo"></p>
 
     <label>
-      <input type="text" id="name" placeholder="輸入姓名" />
+      <input type="text" id="name" placeholder="輸入電話" />
       <button onclick="redeem()">立即兌換</button>
     </label>
 
@@ -71,7 +71,7 @@
           },
           body: JSON.stringify({
             type: "login",
-            phone: phone,
+            phone: number,
             time: loginTime,
             device: detectDeviceType(),
           }),
@@ -134,7 +134,6 @@
 
       const now = new Date();
       const record = {
-        name,
         phone,
         date: todayKey,
         time: now.toLocaleTimeString(),
@@ -152,7 +151,6 @@
         },
         body: JSON.stringify({
           type: "redeem",
-          name,
           phone,
           date: todayKey,
           time: now.toLocaleTimeString(),
