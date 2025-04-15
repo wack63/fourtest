@@ -165,16 +165,20 @@
 
       fetch(SHEET_WEB_APP_URL, {
         method: "POST",
-        mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(record),
       });
-
-      document.getElementById("status").textContent = `兌換成功！今日已兌換：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
-      document.getElementById("name").value = "";
-      document.getElementById("phone").value = "";
-      updateHistory();
-    }
+        .then(res => res.text())
+          .then(resText => {
+            if (resText === "limit_reached") {
+              document.getElementById("status").textContent = `今天(${todayKey})名額已滿（伺服器限制）`;
+            } else if (resText === "phone_used") {
+              document.getElementById("status").textContent = "此手機號碼已使用過（伺服器限制）";
+            } else {
+              document.getElementById("status").textContent = "兌換成功！（已記錄至伺服器）";
+              updateHistory(); // 可加：從本地加一筆成功的紀錄
+            }
+          });
 
     function updateHistory() {
       const now = new Date();
