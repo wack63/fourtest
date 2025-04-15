@@ -25,7 +25,7 @@
     </label>
 
     <!-- <h3>今日兌換紀錄</h3>
-    <ul id="todayList"></ul>
+    <ul id="todayList"></ul> -->
 
     <h3>查詢歷史紀錄</h3>
     <label>
@@ -93,17 +93,7 @@
     }
 
     function updateHistory() {
-      const todayKey = getTodayKey();
-      const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
-      const todayData = localData.filter(r => r.date === todayKey);
-
-      const list = document.getElementById("todayList");
-      list.innerHTML = "";
-      todayData.forEach(record => {
-        const li = document.createElement("li");
-        li.textContent = `${record.time} - ${record.name} (${record.phone})`;
-        list.appendChild(li);
-      });
+      // 今日兌換紀錄功能暫時隱藏，這裡不執行任何顯示邏輯
     }
 
     function redeem() {
@@ -179,7 +169,7 @@
       } else {
         records.forEach(record => {
           const li = document.createElement("li");
-          li.textContent = `${record.time} - ${record.name} (${record.phone})`;
+          li.textContent = `${record.time} - ${record.name} (${record.phone}{record.device})`;
           historyList.appendChild(li);
         });
       }
