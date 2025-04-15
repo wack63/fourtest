@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nomad限量商品兌換</title>
+  <title>兌換活動系統</title>
 </head>
 <body>
   <div id="login">
@@ -47,14 +47,6 @@
       "0416": 20,
       "0417": 10,
     };
-
-    function detectDeviceType() {
-      const ua = navigator.userAgent;
-      if (/android/i.test(ua)) return "Android";
-      if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
-      return "其他";
-    }
-
     function handleLogin() {
       const username = document.getElementById("username").value.trim();
       if (/^09\d{8}$/.test(username)) {
@@ -62,7 +54,6 @@
         const loginTime = new Date().toLocaleString();
         localStorage.setItem("loginTime", loginTime);
 
-        // 傳送登入紀錄
         fetch(SHEET_WEB_APP_URL, {
           method: "POST",
           mode: "no-cors",
@@ -71,9 +62,8 @@
           },
           body: JSON.stringify({
             type: "login",
-            phone: name,
+            phone: username,
             time: loginTime,
-            device: detectDeviceType(),
           }),
         });
 
@@ -98,11 +88,11 @@
       const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
       const todayData = localData.filter(r => r.date === todayKey);
 
-      const list = document.getElementById("");
+      const list = document.getElementById("todayList");
       list.innerHTML = "";
       todayData.forEach(record => {
         const li = document.createElement("li");
-        li.textContent = `${record.time} - ${record.name}`;
+        li.textContent = `${record.time} - ${record.name} (${record.phone})`;
         list.appendChild(li);
       });
     }
@@ -118,7 +108,6 @@
       const todayKey = getTodayKey();
       const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
 
-      // 重複手機兌換驗證（跨日）
       const isDuplicate = localData.some(r => r.phone === phone);
       if (isDuplicate) {
         alert("此手機號碼已兌換過，無法重複兌換");
@@ -134,7 +123,8 @@
 
       const now = new Date();
       const record = {
-        phone,
+        name:name,
+        phone:number,
         date: todayKey,
         time: now.toLocaleTimeString(),
       };
@@ -142,7 +132,6 @@
       localStorage.setItem("voucherData", JSON.stringify(localData));
       updateHistory();
 
-      // 上傳兌換紀錄
       fetch(SHEET_WEB_APP_URL, {
         method: "POST",
         mode: "no-cors",
@@ -151,10 +140,10 @@
         },
         body: JSON.stringify({
           type: "redeem",
-          phone,
+          name:name,
+          phone:number,
           date: todayKey,
           time: now.toLocaleTimeString(),
-          device: detectDeviceType(),
         }),
       });
 
@@ -168,7 +157,7 @@
         return;
       }
 
-      const formattedDate = query.slice(0, 2) + query.slice(2);
+      const formattedDate = query;
       const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
       const records = localData.filter(r => r.date === formattedDate);
 
@@ -180,7 +169,7 @@
       } else {
         records.forEach(record => {
           const li = document.createElement("li");
-          li.textContent = `${record.time} - ${record.name}`;
+          li.textContent = `${record.time} - ${record.name} (${record.phone})`;
           historyList.appendChild(li);
         });
       }
