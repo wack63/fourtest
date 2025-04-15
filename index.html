@@ -169,7 +169,7 @@
       } else {
         records.forEach(record => {
           const li = document.createElement("li");
-          li.textContent = `${record.time} - ${record.name} (${record.phone}{record.device})`;
+          li.textContent = `${record.time} - ${record.name} (${record.phone}) (${record.device})`;
           historyList.appendChild(li);
         });
       }
