@@ -47,6 +47,7 @@
       "0416": 20,
       "0417": 10,
     };
+
     function handleLogin() {
       const username = document.getElementById("username").value.trim();
       if (/^09\d{8}$/.test(username)) {
@@ -123,8 +124,8 @@
 
       const now = new Date();
       const record = {
-        name:name,
-        phone:number,
+        name,
+        phone,
         date: todayKey,
         time: now.toLocaleTimeString(),
       };
@@ -140,8 +141,8 @@
         },
         body: JSON.stringify({
           type: "redeem",
-          name:name,
-          phone:number,
+          name,
+          phone,
           date: todayKey,
           time: now.toLocaleTimeString(),
         }),
