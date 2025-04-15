@@ -42,10 +42,14 @@
     const SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyAjl1yLNeCbH0qdtFQONSo3TMilnUzBWPIZ-CU1S-7nTVR3oJ8saGbg-DKgy-zIqoL/exec';
 
     const dailyLimits = {
-      "0414": 25,
-      "0415": 25,
-      "0416": 20,
-      "0417": 10,
+      "04-14": 25,
+      "04-15": 25,
+      "04-16": 20,
+      "04-17": 10,
+      "04-18": 25,
+      "04-19": 25,
+      "04-16": 20,
+      "04-17": 10,
     };
 
     function detectDeviceType() {
@@ -169,7 +173,7 @@
       } else {
         records.forEach(record => {
           const li = document.createElement("li");
-          li.textContent = `${record.time} - ${record.name} (${record.phone}) (${record.device})`;
+          li.textContent = `${record.time} - ${record.name} (${record.phone})`;
           historyList.appendChild(li);
         });
       }
