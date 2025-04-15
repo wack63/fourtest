@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Nomad限量獎品兌換</title>
+  <meta charset="UTF-8">
+  <title>每日限量兌換</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -13,188 +12,131 @@
       background: url('https://i.redd.it/y1udzivcql471.png');
       background-size: cover;
     }
-    #login {
+    label, input, button {
       display: block;
-    }
-    #app {
-      display: none;
-      background-color: rgba(255, 255, 255, 0.75);
-      border-radius: 12px;
-      padding: 20px;
-    }
-    label {
-      display: block;
-      margin-top: 1rem;
+      width: 100%;
+      margin-bottom: 15px;
     }
     button {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-    }
-    #status {
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-    #history {
-      display: none;
-      background-color: rgba(139, 69, 19, 0.6); /* 橡木桶顏色 + 透明度 */
-      border-radius: 10px;
       padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #result {
       margin-top: 20px;
-    }
-    #history ul {
-      list-style-type: none;
-      padding: 0;
-    }
-    #history li {
-      padding: 0.25rem 0;
-      border-bottom: 1px solid #ccc;
+      font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div id="login">
-    <h2>登入</h2>
-    <label>帳號：<input type="text" id="username" /></label>
-    <button onclick="handleLogin()">登入</button>
-  </div>
 
-  <div id="app">
-    <h2>Nomad限量獎品兌換</h2>
-    <p>目前時間：<span id="now"></span></p>
-    <label>手機號碼：<input type="tel" id="phone" maxlength="10"/></label>
-    <label>姓名：<input type="text" id="name" /></label>
-    <button onclick="redeem()">兌換</button>
-    <div id="status"></div>
-    <button onclick="toggleHistory()">切換紀錄顯示</button>
-    <div id="history">
-      <h3>今日兌換紀錄</h3>
-      <ul id="historyList"></ul>
-    </div>
-  </div>
+  <h2>每日限量兌換</h2>
+
+  <label>姓名</label>
+  <input type="text" id="name" required>
+
+  <label>手機號碼</label>
+  <input type="tel" id="phone" maxlength="10" required>
+
+  <button onclick="submitData()">送出</button>
+
+  <div id="result"></div>
+  <div id="quota" style="text-align:center;margin-top:10px;color:#333;"></div>
 
   <script>
-    const SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyAjl1yLNeCbH0qdtFQONSo3TMilnUzBWPIZ-CU1S-7nTVR3oJ8saGbg-DKgy-zIqoL/exec"; // 請改成你自己的網址
+    const SHEET_URL = "https://script.google.com/macros/s/AKfycbyAjl1yLNeCbH0qdtFQONSo3TMilnUzBWPIZ-CU1S-7nTVR3oJ8saGbg-DKgy-zIqoL/exec";
 
-    const dailyLimits = {
-      "04-14": 30,
-      "04-15": 20,
-      "04-18": 25,
-      "04-19": 25,
-      "04-20": 20,
-      "04-21": 10,
+    function getTodayMMDD() {
+      const today = new Date();
+      return ("0" + (today.getMonth() + 1)).slice(-2) + "-" + ("0" + today.getDate()).slice(-2);
+    }
+
+    function getTodayQuota() {
+      fetch(SHEET_URL + "?checkQuota=true&date=" + getTodayMMDD())
+        .then(res => res.json())
+        .then(data => {
+          if (data.remaining !== undefined) {
+            document.getElementById("quota").textContent = `📦 今日剩餘名額：${data.remaining}`;
+          }
+        })
+        .catch(err => console.error("取得名額失敗", err));
+    }
+
+    // 頁面載入時：載入手機號碼 + 檢查名額 + 檢查 localStorage 裝置是否已兌換
+    window.onload = function () {
+      const savedPhone = localStorage.getItem("userPhone");
+      const deviceUsed = localStorage.getItem("deviceRedeemed");
+
+      if (savedPhone) document.getElementById("phone").value = savedPhone;
+
+      if (deviceUsed === "true") {
+        document.getElementById("result").textContent = "⚠️ 此裝置已兌換過，無法再次兌換";
+        document.querySelector("button").disabled = true;
+      }
+
+      getTodayQuota();
     };
 
-    let usedPhones = JSON.parse(localStorage.getItem("usedPhones") || "[]");
-
-    window.addEventListener("DOMContentLoaded", () => {
-      if (localStorage.getItem("loggedInUser") === "9999") {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("app").style.display = "block";
-        updateHistory();
-      }
-    });
-
-    function handleLogin() {
-      const username = document.getElementById("username").value.trim();
-      if (username === "9999") {
-        localStorage.setItem("loggedInUser", username);
-        document.getElementById("login").style.display = "none";
-        document.getElementById("app").style.display = "block";
-        updateHistory();
-      } else {
-        alert("帳號錯誤");
-      }
-    }
-
-    function updateTime() {
-      const now = new Date();
-      document.getElementById("now").textContent = now.toLocaleString();
-    }
-    setInterval(updateTime, 1000);
-    updateTime();
-
-    function detectDeviceType() {
-      const ua = navigator.userAgent;
-      if (/android/i.test(ua)) return "Android";
-      if (/iPhone|iPad|iPod/i.test(ua)) return "iOS";
-      return "Other";
-    }
-
-    function redeem() {
+    function submitData() {
       const name = document.getElementById("name").value.trim();
       const phone = document.getElementById("phone").value.trim();
-      const now = new Date();
-      const todayKey = now.toISOString().slice(5, 10);
+      const result = document.getElementById("result");
 
-      if (!dailyLimits[todayKey]) {
-        document.getElementById("status").textContent = `今天(${todayKey})無兌換活動`;
-        return;
-      }
       if (!name || !phone) {
-        document.getElementById("status").textContent = "請輸入姓名與手機號碼";
+        result.textContent = "請輸入姓名與手機號碼";
         return;
       }
 
-      if (usedPhones.includes(phone)) {
-        document.getElementById("status").textContent = "此手機號碼已使用過，無法再次兌換";
+      const today = getTodayMMDD();
+
+      // 檢查裝置是否兌換過
+      const deviceUsed = localStorage.getItem("deviceRedeemed");
+      if (deviceUsed === "true") {
+        result.textContent = "⚠️ 此裝置已兌換過，無法再次兌換";
         return;
       }
 
-      const record = {
+      // 儲存手機號碼
+      localStorage.setItem("userPhone", phone);
+
+      const payload = {
         name,
         phone,
-        date: todayKey,
-        time: now.toLocaleString(),
-        device: detectDeviceType(),
-        userAgent: navigator.userAgent,
+        date: today,
+        time: new Date().toLocaleString(),
+        device: /Mobi|Android/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+        userAgent: navigator.userAgent
       };
 
-      // 更新本地記錄
-      const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
-      const todayRecords = localData.filter(r => r.date === todayKey);
-
-      if (todayRecords.length >= dailyLimits[todayKey]) {
-        document.getElementById("status").textContent = `今天(${todayKey})名額已滿`;
-        return;
-      }
-
-      localData.push(record);
-      usedPhones.push(phone);
-      localStorage.setItem("voucherData", JSON.stringify(localData));
-      localStorage.setItem("usedPhones", JSON.stringify(usedPhones));
-
-      fetch(SHEET_WEB_APP_URL, {
+      fetch(SHEET_URL, {
         method: "POST",
-        mode:"no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(record),
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.text())
+      .then(text => {
+        if (text === "success") {
+          result.textContent = "✅ 兌換成功！";
+          localStorage.setItem("deviceRedeemed", "true");
+          getTodayQuota(); // 兌換成功後更新名額顯示
+        } else if (text === "limit_reached") {
+          result.textContent = "❌ 今日名額已滿";
+        } else if (text === "phone_used") {
+          result.textContent = "⚠️ 此手機號碼已兌換過";
+        } else {
+          result.textContent = "❌ 系統錯誤，請稍後再試";
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        result.textContent = "❌ 傳送失敗，請檢查網路";
       });
-
-      document.getElementById("status").textContent = `兌換成功！今日已兌換：${todayRecords.length + 1}/${dailyLimits[todayKey]}`;
-      document.getElementById("name").value = "";
-      document.getElementById("phone").value = "";
-      updateHistory();
-    }
-    
-    function updateHistory() {
-      const now = new Date();
-      const todayKey = now.toISOString().slice(5, 10);
-      const localData = JSON.parse(localStorage.getItem("voucherData") || "[]");
-      const todayRecords = localData.filter(r => r.date === todayKey);
-      const historyList = document.getElementById("historyList");
-
-      historyList.innerHTML = "";
-      todayRecords.forEach(record => {
-        const li = document.createElement("li");
-        li.textContent = `${record.time} - ${record.name} (${record.phone})`;
-        historyList.appendChild(li);
-      });
-    }
-
-    function toggleHistory() {
-      const el = document.getElementById("history");
-      el.style.display = el.style.display === "none" ? "block" : "none";
     }
   </script>
+
 </body>
 </html>
